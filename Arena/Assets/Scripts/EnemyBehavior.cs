@@ -1,29 +1,24 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
- using UnityEngine.AI;
+using UnityEngine.AI;
 
  public class EnemyBehavior : MonoBehaviour 
  {
-     public Transform player;
      public Transform patrolRoute;
      public List<Transform> locations;
      private int locationIndex = 0;
      private NavMeshAgent agent;
+     public Transform player;
 
      private int _lives = 3;
      public int EnemyLives 
      {
-         // 2
          get { return _lives; }
- 
-         // 3
          private set 
          {
              _lives = value;
- 
-             // 4
              if (_lives <= 0)
              {
                  Destroy(this.gameObject);
@@ -40,22 +35,6 @@ using UnityEngine;
          MoveToNextPatrolLocation();
      }
 
-     void Update()
-     {
-         if(agent.remainingDistance < 0.2f && !agent.pathPending)
-         {
-             MoveToNextPatrolLocation();
-         }
-     }
- 
-     void MoveToNextPatrolLocation()
-     {
-         if (locations.Count == 0)
-             return;
-         agent.destination = locations[locationIndex].position;
-         locationIndex = (locationIndex + 1) % locations.Count;
-     }
-
      void InitializePatrolRoute()
      {
          foreach(Transform child in patrolRoute)
@@ -64,12 +43,28 @@ using UnityEngine;
          }
      }
 
+     void Update()
+     {
+         if(agent.remainingDistance < 0.2f && !agent.pathPending)
+         {
+             MoveToNextPatrolLocation();
+         }
+     }
+
+     void MoveToNextPatrolLocation()
+     {
+         if (locations.Count == 0)
+             return;
+         agent.destination = locations[locationIndex].position;
+         locationIndex = (locationIndex + 1) % locations.Count;
+     }
+
      void OnTriggerEnter(Collider other)
      {
          if(other.name == "Player")
          {
              agent.destination = player.position;
-             Debug.Log("Enemy detected!");
+             Debug.Log("Player detected - attack!");
          }
      }
  
@@ -83,10 +78,8 @@ using UnityEngine;
 
      void OnCollisionEnter(Collision collision)
      {
-         // 5
          if(collision.gameObject.name == "Bullet(Clone)")
          {
-             // 6
              EnemyLives -= 1;
              Debug.Log("Critical hit!");
          }

@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,50 +11,60 @@ public class PlayerBehavior : MonoBehaviour
      public float distanceToGround = 0.1f;
      public LayerMask groundLayer;
 
+     private GameBehavior _gameManager;
+
      public GameObject bullet;
      public float bulletSpeed = 100f;
 
-     private float _vInput;
-     private float _hInput;
+     private float vInput;
+     private float hInput;
      private Rigidbody _rb;
      private CapsuleCollider _col;
 
-     private GameBehavior _gameManager;
-
+ 
      void Start()
      {
          _rb = GetComponent<Rigidbody>();
          _col = GetComponent<CapsuleCollider>();
-
          _gameManager = GameObject.Find("GameManager").GetComponent<GameBehavior>();
      }
-
+ 
      void Update()
      {
-         _vInput = Input.GetAxis("Vertical") * moveSpeed;
-         _hInput = Input.GetAxis("Horizontal") * rotateSpeed;
+         vInput = Input.GetAxis("Vertical") * moveSpeed;
+         hInput = Input.GetAxis("Horizontal") * rotateSpeed;
+     }
+
+     void OnCollisionEnter(Collision collision)
+     {
+         if(collision.gameObject.name == "Enemy")
+         {
+             _gameManager.HP -= 1;
+         }
      }
 
      void FixedUpdate()
      {
          if(IsGrounded() && Input.GetKeyDown(KeyCode.Space))
          {
+             _rb.AddForce(Vector3.up * jumpVelocity,
+                 ForceMode.Impulse);
+         }
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
              _rb.AddForce(Vector3.up * jumpVelocity, ForceMode.Impulse);
-         }
-
-         if(Input.GetKeyDown(KeyCode.Space))
-         {
-          _rb.AddForce(Vector3.up * jumpVelocity, ForceMode.Impulse);
-         }
+        }
         
-         Vector3 rotation = Vector3.up * _hInput;
-         Quaternion angleRot = Quaternion.Euler(rotation * Time.fixedDeltaTime);
+        Vector3 rotation = Vector3.up * hInput;
+        Quaternion angleRot = Quaternion.Euler(rotation *
+             Time.fixedDeltaTime);
 
-         _rb.MovePosition(this.transform.position +
-             this.transform.forward * _vInput * Time.fixedDeltaTime);
-         _rb.MoveRotation(_rb.rotation * angleRot);
+        _rb.MovePosition(this.transform.position +
+             this.transform.forward * vInput * Time.fixedDeltaTime);
+        _rb.MoveRotation(_rb.rotation * angleRot);
 
-         if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
          {
              GameObject newBullet = Instantiate(bullet,
                 this.transform.position + new Vector3(1, 0, 0),    
@@ -64,23 +75,16 @@ public class PlayerBehavior : MonoBehaviour
             bulletRB.velocity = this.transform.forward * bulletSpeed;
          }
 
-         bool IsGrounded()
+     bool IsGrounded()
          {
          Vector3 capsuleBottom = new Vector3(_col.bounds.center.x,
              _col.bounds.min.y, _col.bounds.center.z);
                 
          bool grounded = Physics.CheckCapsule(_col.bounds.center,
-            capsuleBottom, distanceToGround, groundLayer, QueryTriggerInteraction.Ignore);
+            capsuleBottom, distanceToGround, groundLayer,
+               QueryTriggerInteraction.Ignore);
                 
          return grounded;
          }
      } 
-
-      void OnCollisionEnter(Collision collision)
-     {
-         if(collision.gameObject.name == "Enemy")
-         {
-             _gameManager.HP -= 1;
-         }
-     }
  }
